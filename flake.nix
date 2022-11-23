@@ -1,5 +1,5 @@
 {
-	description = "defines the nix environment the workers depend on";
+	description = "defines dependencies in a nix flake";
 	inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 	outputs = { self, nixpkgs }:
 		let
@@ -15,10 +15,18 @@
         {
           default = pkgs.mkShell {
 						packages = [
-              pkgs.Python311
-              pkgs.python3Packages.modal-client
+              pkgs.python311.buildPythonPackage {
+                name = "whisperlib";
+                version = "0.0.1";
+                # src = ./app;
+                propagatedBuildInputs = [
+                  pkgs.python3Packages.openai-whisper 
+                  pkgs.python3Packages.fastapi
+                ];
+            };
 						];
           };
-        });
+        };
+        );
     };
 }
