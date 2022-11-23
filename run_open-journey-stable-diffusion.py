@@ -71,19 +71,18 @@ if __name__ == "__main__":
 
 	args = parser.parse_args()
 
-	PROMPT = "mdjrny v4 style " + args.prompt
-	SEED  = int(args.seed)
-	WIDTH = int(args.width)
-	HEIGHT = int(args.height)
-	STEPS = int(args.steps)
-	SCALE = int(args.scale)
+	prompt = "mdjrny v4 style " + args.prompt
+	seed  = int(args.seed)
+	width = int(args.width)
+	height = int(args.height)
+	steps = int(args.steps)
+	scale = int(args.scale)
 	file_name = args.jobid + ".png"
-
 
 	# Run serverless inference job
 	with stub.run():
 
-		img_bytes = run_large_diffusion_model(PROMPT, SEED, WIDTH, HEIGHT, STEPS, SCALE)
+		img_bytes = run_large_diffusion_model(prompt, seed, width, height, steps, scale)
 		output_path = os.path.join(OUTPUT_DIR, file_name)
 
 		with open(output_path, "wb") as f:
