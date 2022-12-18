@@ -1,13 +1,12 @@
 #!/bin/python3
-import argparse, io, sys, modal
-from http.client import PROCESSING
+import modal, argparse, io, os, time
 
+VOLUME = modal.SharedVolume().persist("worker-volume-2")
+MODEL_ID = "stabilityai/stable-diffusion-2-1"
 CACHE_PATH = "/root/model_cache"
-GPU = modal.gpu.A100()
-volume = modal.SharedVolume().persist("sd-testing")
 
 stub = modal.Stub(
-    "serverless-gpu-worker-2",
+    "serverless-worker-2",
     image=modal.Image.debian_slim()
     .apt_install(["git"])
     .pip_install(
@@ -22,18 +21,23 @@ stub = modal.Stub(
 
 
 @stub.function(
-    gpu=GPU,
-    shared_volumes={CACHE_PATH: volume},
+    gpu=modal.gpu.A100(),
+    shared_volumes={CACHE_PATH: VOLUME},
+    secret=modal.Secret.from_name("my-huggingface-secret"),
 )
-async def run_sd2(prompt, seed, width, height, steps, scale):
-    import torch
-    from diffusers import StableDiffusionPipeline, EulerDiscreteScheduler
+async def run_sd2_1(prompt, seed, width, height, steps, scale):
+    import torch as torch
+    from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 
-    model_id = "stabilityai/stable-diffusion-2-1"
-    scheduler = EulerDiscreteScheduler.from_pretrained(model_id, subfolder="scheduler")
+    # EulerDiscreteScheduler
+    # scheduler = EulerDiscreteScheduler.from_pretrained(MODEL_ID, subfolder="scheduler")
+
     pipe = StableDiffusionPipeline.from_pretrained(
-        model_id, scheduler=scheduler, revision="fp16", torch_dtype=torch.float16
+        MODEL_ID,
+        torch_dtype=torch.float16,
+        use_auth_token=os.environ["HUGGINGFACE_TOKEN"],
     )
+    pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
     pipe = pipe.to("cuda")
 
     image = pipe(
@@ -44,12 +48,16 @@ async def run_sd2(prompt, seed, width, height, steps, scale):
         height=height,
         generator=torch.Generator("cuda").manual_seed(seed),
     ).images[0]
-    buf = io.BytesIO()
-    image.save(buf, format="PNG")
-    return buf.getvalue()
+
+    # Save and return the final image
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
 
 
 if __name__ == "__main__":
+    timeAtStartOfRun = time.monotonic()
+
     parser = argparse.ArgumentParser()
     parser.add_argument("prompt", help="text prompt for the model")
     parser.add_argument("seed", help="seed used by noise generator")
@@ -65,12 +73,12 @@ if __name__ == "__main__":
     seed = int(args.seed)
     width = int(args.width)
     height = int(args.height)
-    steps = int(25)
+    steps = int(args.steps)
     scale = int(args.scale)
     file_name = args.jobid + ".png"
 
     with stub.run():
-        png_data = run_sd2(
+        png_data = run_sd2_1(
             prompt=prompt,
             seed=seed,
             width=width,
@@ -80,3 +88,6 @@ if __name__ == "__main__":
         )
         with open("output.png", "wb") as file:
             file.write(png_data)
+
+    timeAtCompletion = time.monotonic() - timeAtStartOfRun
+    print(f"finished in: {timeAtCompletion:.2f} seconds")
