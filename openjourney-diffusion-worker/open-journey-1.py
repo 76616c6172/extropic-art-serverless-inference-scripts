@@ -1,11 +1,6 @@
 #!/bin/python3
-
-import modal
-import io
-import os
-import time
+import modal, io, os, time, argparse
 from typing import Optional
-import argparse
 
 stub = modal.Stub("serverless-gpu-worker-1")
 VOLUME = modal.SharedVolume().persist("serverless-gpu-worker-volume")

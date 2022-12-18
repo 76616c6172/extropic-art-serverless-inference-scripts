@@ -1,12 +1,5 @@
 #!/bin/python3
-"""
-SD 2.0
-"""
-import argparse
-
-import io
-import sys
-import modal
+import argparse, io, sys, modal
 from http.client import PROCESSING
 
 CACHE_PATH = "/root/model_cache"
@@ -49,7 +42,7 @@ async def run_sd2(prompt, seed, width, height, steps, scale):
         guidance_scale=scale,
         width=width,
         height=height,
-        generator = torch.Generator("cuda").manual_seed(seed)
+        generator=torch.Generator("cuda").manual_seed(seed),
     ).images[0]
     buf = io.BytesIO()
     image.save(buf, format="PNG")
