@@ -1,12 +1,15 @@
 #!/bin/python3
 import modal, io, os, time, argparse
 
-VOLUME = modal.SharedVolume().persist("worker-volume-1")
+# VOLUME = modal.SharedVolume().persist("worker-volume-1")
+VOLUME = modal.SharedVolume().persist("worker-volume-3")
 CACHE_PATH = "/root/model_cache"
 MODEL_ID = "prompthero/openjourney"
 
+
 stub = modal.Stub(
-    "serverless-worker-1",
+    # "serverless-worker-1", # currently in prod
+    "serverless-worker-3",
     image=modal.Image.debian_slim()
     .apt_install(["git"])
     .pip_install(
@@ -35,6 +38,7 @@ async def run_sd1_5(prompt, seed, width, height, steps, scale):
         use_auth_token=os.environ["HUGGINGFACE_TOKEN"],
         torch_dtype=float16,
         cache_dir=CACHE_PATH,
+        local_files_only=True,
         device_map="auto",
         safety_checker=None,
     )

@@ -23,6 +23,7 @@ stub = modal.Stub(
 @stub.function(
     gpu=modal.gpu.A100(),
     shared_volumes={CACHE_PATH: VOLUME},
+    local_files_only=True,
     secret=modal.Secret.from_name("my-huggingface-secret"),
 )
 async def run_sd2_1(prompt, seed, width, height, steps, scale):
