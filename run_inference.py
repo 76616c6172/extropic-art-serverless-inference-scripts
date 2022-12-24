@@ -21,12 +21,9 @@ if __name__ == "__main__":
     scale = int(args.scale)
     file_name = args.jobid + ".png"
 
-    # Debugging
-    print(args)
-
     if args.model == "0":
         prompt = "mdjrny v4 style " + args.prompt
-        steps = int(77)
+        steps = int(75)
         run_inference = modal.lookup("serverless-worker-1", "run_sd1_5")
     else:
         prompt = args.prompt

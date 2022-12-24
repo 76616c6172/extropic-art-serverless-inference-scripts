@@ -23,22 +23,23 @@ stub = modal.Stub(
 @stub.function(
     gpu=modal.gpu.A100(),
     shared_volumes={CACHE_PATH: VOLUME},
-    local_files_only=True,
     secret=modal.Secret.from_name("my-huggingface-secret"),
 )
 async def run_sd2_1(prompt, seed, width, height, steps, scale):
     import torch as torch
-    from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 
-    # EulerDiscreteScheduler
-    # scheduler = EulerDiscreteScheduler.from_pretrained(MODEL_ID, subfolder="scheduler")
+    # from diffusers import StableDiffusionPipeline, EulerDiscreteScheduler
+    from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 
     pipe = StableDiffusionPipeline.from_pretrained(
         MODEL_ID,
+        cache_dir=CACHE_PATH,
+        local_files_only=True,
         torch_dtype=torch.float16,
         use_auth_token=os.environ["HUGGINGFACE_TOKEN"],
     )
     pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
+    # pipe.scheduler = EulerDiscreteScheduler.from_pretrained(MODEL_ID, subfolder="scheduler")
     pipe = pipe.to("cuda")
 
     image = pipe(
