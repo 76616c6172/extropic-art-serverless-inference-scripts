@@ -80,7 +80,7 @@ if __name__ == "__main__":
     # Run serverless inference job
     with stub.run():
 
-        img_bytes = run_sd1_5(prompt, seed, width, height, steps, scale)
+        img_bytes = run_sd1_5.call(prompt, seed, width, height, steps, scale)
         output_path = os.path.join("./", file_name)
 
         with open(output_path, "wb") as f:

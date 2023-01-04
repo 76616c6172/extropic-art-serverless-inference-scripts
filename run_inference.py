@@ -30,7 +30,7 @@ if __name__ == "__main__":
         steps = int(25)
         run_inference = modal.lookup("serverless-worker-2", "run_sd2_1")
 
-    img_bytes = run_inference(prompt, seed, width, height, steps, scale)
+    img_bytes = run_inference.call(prompt, seed, width, height, steps, scale)
 
     output_path = os.path.join(OUT_DIR, file_name)
     with open(output_path, "wb") as file:
