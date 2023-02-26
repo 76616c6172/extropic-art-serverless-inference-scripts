@@ -25,6 +25,10 @@ if __name__ == "__main__":
         prompt = "mdjrny v4 style " + args.prompt
         steps = int(75)
         run_inference = modal.lookup("serverless-worker-1", "run_sd1_5")
+    if args.model == "1":
+        prompt = args.prompt
+        steps = int(75)
+        run_inference = modal.lookup("serverless-worker-4", "run_abyss_orange_mix")
     else:
         prompt = args.prompt
         steps = int(25)
