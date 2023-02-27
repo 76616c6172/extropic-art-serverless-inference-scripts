@@ -25,14 +25,24 @@ if __name__ == "__main__":
         prompt = "mdjrny v4 style " + args.prompt
         steps = int(75)
         run_inference = modal.lookup("serverless-worker-1", "run_sd1_5")
-    if args.model == "1":
+    elif args.model == "1":
+        prompt = "mdjrny v4 style " + args.prompt
+        steps = int(75)
+        run_inference = modal.lookup("serverless-worker-1", "run_sd1_5")
+    elif args.model == "2":
+        prompt = args.prompt
+        steps = int(25)
+        run_inference = modal.lookup("serverless-worker-2", "run_sd2_1")
+    elif args.model == "3":
+        prompt = args.prompt
+        steps = int(75)
+        run_inference = modal.lookup("serverless-worker-3", "run_oj2")
+    elif args.model == "4":
         prompt = args.prompt
         steps = int(75)
         run_inference = modal.lookup("serverless-worker-4", "run_abyss_orange_mix")
     else:
-        prompt = args.prompt
-        steps = int(25)
-        run_inference = modal.lookup("serverless-worker-2", "run_sd2_1")
+        os.exit(1)
 
     img_bytes = run_inference.call(prompt, seed, width, height, steps, scale)
 
