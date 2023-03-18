@@ -21,7 +21,7 @@ stub = modal.Stub(
 
 
 @stub.function(
-    gpu=modal.gpu.A100(),
+    gpu="any",
     shared_volumes={CACHE_PATH: VOLUME},
     secret=modal.Secret.from_name("my-huggingface-secret"),
 )

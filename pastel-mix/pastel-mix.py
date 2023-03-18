@@ -1,13 +1,14 @@
 #!/bin/python3
+from sched import scheduler
 import modal, io, os, time, argparse
 
-VOLUME = modal.SharedVolume().persist("worker-volume-3")
+VOLUME = modal.SharedVolume().persist("volume-6-pastel-mix")
 CACHE_PATH = "/root/model_cache"
-MODEL_ID = "prompthero/openjourney-v2"
+MODEL_ID = "andite/pastel-mix"
 
 
 stub = modal.Stub(
-    "serverless-worker-3",
+    "worker-6-pastel-mix",
     image=modal.Image.debian_slim()
     .apt_install(["git"])
     .pip_install(
@@ -26,10 +27,11 @@ stub = modal.Stub(
     shared_volumes={CACHE_PATH: VOLUME},
     secret=modal.Secret.from_name("my-huggingface-secret"),
 )
-async def run_oj2(prompt, seed, width, height, steps, scale):
+async def run_pastel_mix(prompt, seed, width, height, steps, scale):
     import torch as torch
     from torch import float16
     from diffusers import StableDiffusionPipeline
+    from diffusers import EulerAncestralDiscreteScheduler
 
     pipe = StableDiffusionPipeline.from_pretrained(
         MODEL_ID,
@@ -40,8 +42,12 @@ async def run_oj2(prompt, seed, width, height, steps, scale):
         device_map="auto",
         safety_checker=None,
     )
+
+    pipe.scheduler = EulerAncestralDiscreteScheduler.from_pretrained(MODEL_ID, subfolder="scheduler")
+
     image = pipe(
         prompt,
+        negative_prompt="lowres, ((bad anatomy)), ((bad hands)), text, missing finger, extra digits, fewer digits, blurry, ((mutated hands and fingers)), (poorly drawn face), ((mutation)), ((deformed face)), (ugly), ((bad proportions)), ((extra limbs)), extra face, (double head), (extra head), ((extra feet)), monster, logo, cropped, worst quality, low quality, normal quality, jpeg, humpbacked, long body, long neck, ((jpeg artifacts))",
         num_inference_steps=steps,
         guidance_scale=scale,
         width=width,
@@ -77,11 +83,12 @@ if __name__ == "__main__":
     scale = int(args.scale)
     file_name = args.jobid + ".png"
 
-    # Run inference job
+    # Run serverless inference job
     with stub.run():
 
-        img_bytes = run_oj2.call(prompt, seed, width, height, steps, scale)
+        img_bytes = run_pastel_mix.call(prompt, seed, width, height, steps, scale)
         output_path = os.path.join("./", file_name)
+
         with open(output_path, "wb") as f:
             f.write(img_bytes)
 

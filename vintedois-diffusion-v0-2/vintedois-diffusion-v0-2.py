@@ -1,13 +1,14 @@
 #!/bin/python3
+from sched import scheduler
 import modal, io, os, time, argparse
 
-VOLUME = modal.SharedVolume().persist("worker-volume-3")
+VOLUME = modal.SharedVolume().persist("worker-volume-5")
 CACHE_PATH = "/root/model_cache"
-MODEL_ID = "prompthero/openjourney-v2"
+MODEL_ID = "22h/vintedois-diffusion-v0-2"
 
 
 stub = modal.Stub(
-    "serverless-worker-3",
+    "serverless-worker-5",
     image=modal.Image.debian_slim()
     .apt_install(["git"])
     .pip_install(
@@ -26,10 +27,11 @@ stub = modal.Stub(
     shared_volumes={CACHE_PATH: VOLUME},
     secret=modal.Secret.from_name("my-huggingface-secret"),
 )
-async def run_oj2(prompt, seed, width, height, steps, scale):
+async def run_vd_0_2(prompt, seed, width, height, steps, scale):
     import torch as torch
     from torch import float16
     from diffusers import StableDiffusionPipeline
+    from diffusers import EulerAncestralDiscreteScheduler
 
     pipe = StableDiffusionPipeline.from_pretrained(
         MODEL_ID,
@@ -40,8 +42,12 @@ async def run_oj2(prompt, seed, width, height, steps, scale):
         device_map="auto",
         safety_checker=None,
     )
+
+    pipe.scheduler = EulerAncestralDiscreteScheduler.from_pretrained(MODEL_ID, subfolder="scheduler")
+
     image = pipe(
         prompt,
+        negative_prompt="",
         num_inference_steps=steps,
         guidance_scale=scale,
         width=width,
@@ -77,11 +83,12 @@ if __name__ == "__main__":
     scale = int(args.scale)
     file_name = args.jobid + ".png"
 
-    # Run inference job
+    # Run serverless inference job
     with stub.run():
 
-        img_bytes = run_oj2.call(prompt, seed, width, height, steps, scale)
+        img_bytes = run_vd_0_2.call(prompt, seed, width, height, steps, scale)
         output_path = os.path.join("./", file_name)
+
         with open(output_path, "wb") as f:
             f.write(img_bytes)
 

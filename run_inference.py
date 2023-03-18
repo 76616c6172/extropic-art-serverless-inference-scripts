@@ -41,6 +41,14 @@ if __name__ == "__main__":
         prompt = args.prompt
         steps = int(75)
         run_inference = modal.lookup("serverless-worker-4", "run_abyss_orange_mix")
+    elif args.model == "5":
+        prompt = args.prompt
+        steps = int(75)
+        run_inference = modal.lookup("serverless-worker-5", "run_vd_0_2")
+    elif args.model == "6":
+        prompt = args.prompt
+        steps = int(35)
+        run_inference = modal.lookup("worker-6-pastel-mix", "run_pastel_mix")
     else:
         os.exit(1)
 

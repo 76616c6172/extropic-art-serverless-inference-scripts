@@ -22,7 +22,7 @@ stub = modal.Stub(
 
 
 @stub.function(
-    gpu=modal.gpu.A100(),
+    gpu="any",
     shared_volumes={CACHE_PATH: VOLUME},
     secret=modal.Secret.from_name("my-huggingface-secret"),
 )
@@ -36,7 +36,7 @@ async def run_abyss_orange_mix(prompt, seed, width, height, steps, scale):
         use_auth_token=os.environ["HUGGINGFACE_TOKEN"],
         torch_dtype=float16,
         cache_dir=CACHE_PATH,
-        local_files_only=True,
+        local_files_only=False,
         device_map="auto",
         safety_checker=None,
     )
